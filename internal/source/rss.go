@@ -3,6 +3,7 @@ package source
 import (
 	"context"
 	"news-feed-bot/internal/model"
+	"news-feed-bot/internal/utils"
 
 	"github.com/SlyMarbo/rss"
 )
@@ -21,27 +22,31 @@ func NewRSSSourceFromModel(m model.Source) RSSSource {
 	}
 }
 
+func (s RSSSource) Id() int64 {
+	return s.SourceId
+}
+
+func (s RSSSource) Name() string {
+	return s.SourceName
+}
+
 func (s RSSSource) Fetch(ctx context.Context) ([]model.Item, error) {
 	feed, err := s.loadFeed(ctx, s.URL)
-	mappedFeed := make([]model.Item, len(feed.Items))
-	/* Вынести в отдельный метод Map + Utests */
-	for _, v := range feed.Items {
-		elem := model.Item{
-			Title:      v.Title,
-			Categories: v.Categories,
-			Link:       v.Link,
-			Date:       v.Date,
-			Summary:    v.Summary,
-			SourceName: s.SourceName,
-		}
-		mappedFeed = append(mappedFeed, elem)
-	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	return mappedFeed, nil
+	return utils.Map(feed.Items, func(item *rss.Item, _ int) model.Item {
+		return model.Item{
+			Title:      item.Title,
+			Categories: item.Categories,
+			Link:       item.Link,
+			Date:       item.Date,
+			Summary:    item.Summary,
+			SourceName: s.SourceName,
+		}
+	}), nil
 }
 
 func (s RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error) {

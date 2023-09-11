@@ -13,6 +13,17 @@ type SourcePostgresStorage struct {
 	db *sqlx.DB
 }
 
+type dbSource struct {
+	Id        int64     `db:"id"`
+	Name      string    `db:"name"`
+	FeedUrl   string    `db:"feed_url"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+func NewArticleStorage(db *sqlx.DB) *ArticlePostgresStorage {
+	return &ArticlePostgresStorage{db: db}
+}
+
 func (s *SourcePostgresStorage) Sources(ctx context.Context) ([]model.Source, error) {
 	conn, err := s.db.Connx(ctx)
 
@@ -94,11 +105,4 @@ func (s *SourcePostgresStorage) Delete(ctx context.Context, id int64) error {
 	}
 
 	return nil
-}
-
-type dbSource struct {
-	Id        int64     `db:"id"`
-	Name      string    `db:"name"`
-	FeedUrl   string    `db:"feed_url"`
-	CreatedAt time.Time `db:"created_at"`
 }

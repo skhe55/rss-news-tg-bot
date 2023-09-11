@@ -1,0 +1,15 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "driver": "PostgreSQL",
+            "name": "news_feed_bot",
+            "group": "news_feed_bot",
+            "database": "news_feed_bot",
+            "username": "postgres",
+            "password": "postgres"
+        }
+    ]
+}
