@@ -22,6 +22,7 @@ import (
 
 func main() {
 	botAPI, err := tgbotapi.NewBotAPI(config.Get().TelegramBotToken)
+
 	if err != nil {
 		log.Printf("failed to create bot: %v", err)
 		return
@@ -61,6 +62,28 @@ func main() {
 	newsBot.RegisterCmdView("addsource", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdAddSource(sourceStorage)))
 	newsBot.RegisterCmdView("listsources", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdListSources(sourceStorage)))
 	newsBot.RegisterCmdView("deletesource", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdDeleteSource(sourceStorage)))
+	newsBot.RegisterCmdView("updatesources", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdUpdateSource(sourceStorage)))
+
+	tgCfg := tgbotapi.NewSetMyCommands(
+		tgbotapi.BotCommand{
+			Command:     "addsource",
+			Description: "Создать источник",
+		},
+		tgbotapi.BotCommand{
+			Command:     "listsources",
+			Description: "Получить список источников",
+		},
+		tgbotapi.BotCommand{
+			Command:     "deletesource",
+			Description: "Удалить источник",
+		},
+		tgbotapi.BotCommand{
+			Command:     "updatesources",
+			Description: "Обновить источник",
+		},
+	)
+
+	_, _ = botAPI.Request(tgCfg)
 
 	go func(ctx context.Context) {
 		if err := fetcher.Start(ctx); err != nil {

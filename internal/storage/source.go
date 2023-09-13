@@ -2,8 +2,11 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"news-feed-bot/internal/model"
 	"news-feed-bot/internal/utils"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -90,6 +93,45 @@ func (s *SourcePostgresStorage) Add(ctx context.Context, source model.Source) (i
 	}
 
 	return id, nil
+}
+
+func (s *SourcePostgresStorage) Update(ctx context.Context, source model.UpdateSource) error {
+	conn, err := s.db.Connx(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	valueOfSource := reflect.ValueOf(source)
+	typeOfSource := valueOfSource.Type()
+
+	var fields []string
+
+	for i := 1; i < valueOfSource.NumField(); i++ {
+		if valueOfSource.Field(i).Interface() != "" && typeOfSource.Field(i).Name != "URL" {
+			fields = append(fields, fmt.Sprintf("%v=:%v", strings.ToLower(typeOfSource.Field(i).Name), strings.ToLower(typeOfSource.Field(i).Name)))
+		}
+		if valueOfSource.Field(i).Interface() != "" && typeOfSource.Field(i).Name == "URL" {
+			fields = append(fields, fmt.Sprintf("feed_url=:%v", strings.ToLower(typeOfSource.Field(i).Name)))
+		}
+	}
+
+	namedQuery := fmt.Sprintf("UPDATE sources SET %v WHERE id=:id", strings.Join(fields, ", "))
+
+	query, args, err := sqlx.Named(namedQuery, source)
+	if err != nil {
+		return err
+	}
+
+	if len(args) == 1 {
+		return nil
+	}
+
+	if _, err := conn.ExecContext(ctx, conn.Rebind(query), args...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *SourcePostgresStorage) Delete(ctx context.Context, id int64) error {
