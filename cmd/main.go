@@ -58,7 +58,7 @@ func main() {
 	defer cancel()
 
 	newsBot := botkit.New(botAPI)
-	newsBot.RegisterCmdView("start", bot.ViewCmdStart())
+	newsBot.RegisterCmdView("help", bot.ViewCmdHelp())
 	newsBot.RegisterCmdView("addsource", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdAddSource(sourceStorage)))
 	newsBot.RegisterCmdView("listsources", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdListSources(sourceStorage)))
 	newsBot.RegisterCmdView("deletesource", middleware.AdminOnly(config.Get().TelegramChannelId, bot.ViewCmdDeleteSource(sourceStorage)))
